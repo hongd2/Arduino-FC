@@ -1,9 +1,21 @@
+#include <Wire.h> 
+// Project is done with some help from http://www.brokking.net/ymfc-3d_main.html
+
+
+/////////////////////////////////////
+// Variables for Transmitter ISR() //
+/////////////////////////////////////
 byte last_ch_1, last_ch_2, last_ch_3, last_ch_4;
 unsigned long timer_1, timer_2, timer_3, timer_4, current_time;
 int rec_input_timer_1, rec_input_timer_2, rec_input_timer_3, rec_input_timer_4;
 
+////////////////////////////////
+// Variables for Reading Gyro //
+////////////////////////////////
+
 
 void setup(){
+  Serial.begin(9600);
   //////////////////////////////////////////////
   // PCICR: Enable PCMSK0 scan for interrupts //
   // PCINT0: Digital Pin 8 trigger interrupt  //
@@ -16,12 +28,34 @@ void setup(){
   PCMSK0 |= (1 << PCINT1);
   PCMSK0 |= (1 << PCINT2);
   PCMSK0 |= (1 << PCINT3);
-  Serial.begin(9600);
+  
+  
+  /////////////////////////////////////
+  // Setup Gyro Ports and I2C Buffer //
+  /////////////////////////////////////
+  Wire.begin();
+  // Gyro I2C Addr: https://www.pololu.com/file/0J563/L3GD20.pdf
+  // Write to Register 0x20:
+  //   -Set gyro to 'enabled' (disabled by default)
+  //   -Set gyro xyz axis to enabled (enabed by default)
+  Wire.beginTransmission(110101xb);
+  Wire.write(0x20);
+  Wire.write(00001111xb);
+  Wire.endTransmission();
+  // Write to Register 0x23:
+  //   -Set Block Data Update to 'active' (disabled by default)
+  //   (This is because I2C sends in 2 Bytes (lowByte and highByte)
+  Wire.beginTransmission(110101xb);
+  Wire.write(0x23);
+  Wire.write(10000000xb);
+  Wire.endTransmission();
+  delay(250);
+  
 }
 
 void loop(){
   delay(250);
-  read_signals();
+  //read_signals(); //Read Tx Controls
 }
 
 
